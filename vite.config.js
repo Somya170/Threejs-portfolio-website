@@ -1,9 +1,16 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  base: './',
   plugins: [react()],
-  publicDir: 'public',
-})
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  assetsInclude: ['**/*.gltf', '**/*.glb'], // Includes GLTF and GLB files
+  build: {
+    chunkSizeWarningLimit: 1000, // Optional: suppress warning for large chunks
+  },
+});
