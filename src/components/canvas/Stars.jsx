@@ -17,10 +17,37 @@ const Stars = (props) => {
       <Points ref={ref} positions={sphere} stride={3} frustumCulled {...props}>
         <PointMaterial
           transparent
-          color='#f272c8'
+          color='#915EFF'
           size={0.002}
           sizeAttenuation={true}
           depthWrite={false}
+        />
+      </Points>
+    </group>
+  );
+};
+
+const FloatingParticles = () => {
+  const ref = useRef();
+  const [particles] = useState(() => random.inSphere(new Float32Array(1500), { radius: 2 }));
+
+  useFrame((state) => {
+    if (ref.current) {
+      ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+      ref.current.rotation.y = Math.cos(state.clock.elapsedTime * 0.1) * 0.1;
+    }
+  });
+
+  return (
+    <group ref={ref}>
+      <Points positions={particles} stride={3} frustumCulled>
+        <PointMaterial
+          transparent
+          color='#ffffff'
+          size={0.001}
+          sizeAttenuation={true}
+          depthWrite={false}
+          opacity={0.6}
         />
       </Points>
     </group>
@@ -33,6 +60,7 @@ const StarsCanvas = () => {
       <Canvas camera={{ position: [0, 0, 1] }}>
         <Suspense fallback={null}>
           <Stars />
+          <FloatingParticles />
         </Suspense>
 
         <Preload all />
