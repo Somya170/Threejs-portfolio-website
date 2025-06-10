@@ -5,11 +5,40 @@ import * as random from "maath/random/dist/maath-random.esm";
 
 const Stars = (props) => {
   const ref = useRef();
-  const [sphere] = useState(() => random.inSphere(new Float32Array(5000), { radius: 1.2 }));
+  const [sphere] = useState(() => {
+    try {
+      const positions = random.inSphere(new Float32Array(5000), { radius: 1.2 });
+      
+      // Check for NaN values and replace them
+      for (let i = 0; i < positions.length; i++) {
+        if (isNaN(positions[i])) {
+          positions[i] = (Math.random() - 0.5) * 2.4; // Random value between -1.2 and 1.2
+        }
+      }
+      
+      return positions;
+    } catch (error) {
+      console.warn("Error generating star positions:", error);
+      // Fallback: generate positions manually
+      const positions = new Float32Array(5000);
+      for (let i = 0; i < 5000; i += 3) {
+        const radius = Math.random() * 1.2;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        positions[i + 2] = radius * Math.cos(phi);
+      }
+      return positions;
+    }
+  });
 
   useFrame((state, delta) => {
-    ref.current.rotation.x -= delta / 10;
-    ref.current.rotation.y -= delta / 15;
+    if (ref.current) {
+      ref.current.rotation.x -= delta / 10;
+      ref.current.rotation.y -= delta / 15;
+    }
   });
 
   return (
@@ -27,40 +56,17 @@ const Stars = (props) => {
   );
 };
 
-const FloatingParticles = () => {
-  const ref = useRef();
-  const [particles] = useState(() => random.inSphere(new Float32Array(1500), { radius: 2 }));
-
-  useFrame((state) => {
-    if (ref.current) {
-      ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
-      ref.current.rotation.y = Math.cos(state.clock.elapsedTime * 0.1) * 0.1;
-    }
-  });
-
-  return (
-    <group ref={ref}>
-      <Points positions={particles} stride={3} frustumCulled>
-        <PointMaterial
-          transparent
-          color='#ffffff'
-          size={0.001}
-          sizeAttenuation={true}
-          depthWrite={false}
-          opacity={0.6}
-        />
-      </Points>
-    </group>
-  );
-};
-
 const StarsCanvas = () => {
   return (
     <div className='w-full h-auto absolute inset-0 z-[-1]'>
-      <Canvas camera={{ position: [0, 0, 1] }}>
+      <Canvas 
+        camera={{ position: [0, 0, 1] }}
+        onError={(error) => {
+          console.warn("Stars Canvas error:", error);
+        }}
+      >
         <Suspense fallback={null}>
           <Stars />
-          <FloatingParticles />
         </Suspense>
 
         <Preload all />
